@@ -1,0 +1,9 @@
+DATA_DIR = './data'
+GLOVE_DIR = 'glove_embeddings'
+GLOVE_EMBEDDINGS_NAME = 'glove.6B.300d.txt'
+MEDIUM_DIR = 'medium_articles'
+MEDIUM_CSV_NAME = 'medium_articles.csv'
+GLOVE_EMBEDDINGS_ID = 'anmolkumar/glove-embeddings'
+MEDIUM_ARTICLES_ID = 'fabiochiusano/medium-articles'
+KAGGLE_API_KEY = "./kaggle.json"
+PUNCTUATIONS=r'''!()-[]{};:'"\,<>./?@#$%^&*_~'''

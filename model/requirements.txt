@@ -1,0 +1,5 @@
+kaggle
+python-dotenv
+numpy
+nltk
+scipy
