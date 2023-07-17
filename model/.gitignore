@@ -2,3 +2,4 @@ kaggle.json
 data
 .env
 __pycache__
+model.log

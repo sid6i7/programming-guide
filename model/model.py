@@ -7,6 +7,10 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from preprocess import PreProcessor
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename=LOG_FILE_PATH)
+logger = logging.getLogger(__name__)
 
 class DataHandler:
     def __init__(self, processed):
@@ -45,7 +49,7 @@ class DataHandler:
         del self.stackoverflowTagsDataFrame
     
     def __load_data(self, processed):
-        print("loading data")            
+        logger.info("loading data")            
         try:
             if processed['medium']:
                 self.articlesDataFrame = pd.read_csv(os.path.join(self.mediumPath, MEDIUM_PROCESSED_CSV_NAME))
@@ -58,7 +62,7 @@ class DataHandler:
 
             self.stackoverflowTagsDataFrame = pd.read_csv(self.stackoverflowTagsCsvFilePath, encoding = "ISO-8859-1")
         except Exception as e:
-            print(f"ERROR: no csv found: {e}")
+            logger.info(f"ERROR: no csv found: {e}")
 
 class RecommendationSystem:
 
@@ -82,11 +86,11 @@ class RecommendationSystem:
         self.mediumProcessedCsv = os.path.join(self.mediumDir, MEDIUM_PROCESSED_CSV_NAME)
         if os.path.exists(self.mediumProcessedCsv):
             processed['medium'] = True
-        print(processed)
+        logger.info(f"status of preprocessed files: {processed}")
         return processed
  
     def __load_glove_embeddings(self):
-        print("loading embeddings")
+        logger.info("loading embeddings")
         embeddingsMatrix = {}
         with open(self.dataHandler.gloveEmbeddingsFilePath, encoding='utf-8') as f:
             for line in f:
@@ -103,7 +107,7 @@ class RecommendationSystem:
         return np.mean(embeddings, axis=0)
     
     def __filter_df_using_tag(self, tag):
-        print("filtering now")
+        logger.info("filtering now")
         tagIds = self.dataHandler.stackoverflowTagsDataFrame.loc[self.dataHandler.stackoverflowTagsDataFrame['Tag'] == tag]['Id']
         filteredStackDf = self.dataHandler.stackoverflowQuestionsDataFrame[self.dataHandler.stackoverflowQuestionsDataFrame['Id'].isin(tagIds)]
         filteredMediumDf = self.dataHandler.articlesDataFrame[self.dataHandler.articlesDataFrame['tags'].apply(lambda x: tag in x)]
@@ -111,7 +115,7 @@ class RecommendationSystem:
         return filteredStackDf, filteredMediumDf
 
     def __get_top_similar_stackoverflow(self, sentence, stackoverflowDf, n):
-        print("get similar stackoverflow")
+        logger.info("get similar stackoverflow")
         sentence_embedding = self.__sentence_to_embeddings(sentence).reshape(1, -1)
         similarQuestions = []
         for index, row in stackoverflowDf.iterrows():
@@ -125,8 +129,7 @@ class RecommendationSystem:
                         'similarity': similarity
                     })
             except Exception as e:
-                print("error")
-                print(e)
+                logger.error(f"{e} no embeddings present for stackoverflow question: {row['Title']}")
 
         similarQuestions.sort(key=lambda x: x['similarity'], reverse=True)
         similarQuestions = similarQuestions[:n]
@@ -134,7 +137,7 @@ class RecommendationSystem:
         return similarQuestions
 
     def __get_top_similar_medium(self, sentence, mediumDf, n):
-        print("get similar medium")
+        logger.info("get similar medium")
         sentenceEmbedding = self.__sentence_to_embeddings(sentence).reshape(1, -1)
         similarArticles = []
         for index, row in mediumDf.iterrows():
@@ -149,8 +152,7 @@ class RecommendationSystem:
                         'similarity': similarity
                     })
             except Exception as e:
-                print("error")
-                print(e)
+                logger.error(f"error: {e} for medium article: {row['title']}")
 
         similarArticles.sort(key=lambda x: x['similarity'], reverse=True)
         similarArticles = similarArticles[:n]
@@ -158,6 +160,7 @@ class RecommendationSystem:
         return similarArticles
 
     def recommend(self, sentence, tag=None, n=1):
+        logger.info(f"start recommendation for '{sentence}'")
         sentence = self.dataPreProcessor.clean_text(sentence)
         if tag:
             stackoverflowFilteredDf, mediumFilteredDf = self.__filter_df_using_tag(tag)
@@ -166,5 +169,5 @@ class RecommendationSystem:
         else:
             stackoverflowSimilarData = self.__get_top_similar_stackoverflow(sentence, self.dataHandler.stackoverflowQuestionsDataFrame, n)
             mediumSimilarData = self.__get_top_similar_medium(sentence, self.dataHandler.articlesDataFrame, n)
-    
+        logger.info(f"finish recommendation for '{sentence}'")
         return stackoverflowSimilarData, mediumSimilarData

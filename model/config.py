@@ -18,3 +18,5 @@ KAGGLE_API_KEY = "./kaggle.json"
 PUNCTUATIONS=r'''!()-[]{};:'"\,<>./?@#$%^&*_~'''
 
 SIMILARITY_THRESHOLD = 0.4
+
+LOG_FILE_PATH = './model.log'

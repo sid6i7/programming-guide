@@ -10,6 +10,10 @@ from nltk.tokenize import word_tokenize
 nltk.download('stopwords')
 nltk.download('punkt')
 import ast
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename=LOG_FILE_PATH)
+logger = logging.getLogger(__name__)
 
 class PreProcessor:
     def __init__(self) -> None:
@@ -22,7 +26,7 @@ class PreProcessor:
             self.preprocess_medium(mediumDf, mediumPath)
         
     def preprocess_stackoverflow(self, stackDf, stackCsvPath):
-        print("preprocessing stackoverflow")
+        logger.info("preprocessing stackoverflow")
         stackDf['Body_sentence'], stackDf['Body_code'] = zip(*stackDf['Body'].progress_apply(self.__parse_q_body))
         stackDf['Body_sentence'] = stackDf['Body_sentence'].progress_apply(self.clean_text)
         stackDf['Title'] = stackDf['Title'].progress_apply(self.clean_text)
@@ -30,7 +34,7 @@ class PreProcessor:
         stackDf[['Id', 'Title', 'question']].to_csv(stackCsvPath)
 
     def preprocess_medium(self, mediumDf, mediumCsvPath):
-        print("preprocessing medium")
+        logger.info("preprocessing medium")
         mediumDf['text'] = mediumDf['text'].progress_apply(self.clean_text)
         mediumDf['tags'] = mediumDf['tags'].progress_apply(ast.literal_eval)
         mediumDf['tags'] = mediumDf['tags'].progress_apply(lambda tags: [tag.lower() for tag in tags])
