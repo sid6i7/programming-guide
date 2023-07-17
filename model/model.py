@@ -7,7 +7,6 @@ import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from preprocess import PreProcessor
-import time
 
 class DataHandler:
     def __init__(self, processed):
@@ -60,3 +59,39 @@ class DataHandler:
             self.stackoverflowTagsDataFrame = pd.read_csv(self.stackoverflowTagsCsvFilePath, encoding = "ISO-8859-1")
         except Exception as e:
             print(f"ERROR: no csv found: {e}")
+
+class RecommendationSystem:
+
+    def __init__(self) -> None:
+        self.stackDir = os.path.join(DATA_DIR, STACKOVERFLOW_DIR)
+        self.mediumDir = os.path.join(DATA_DIR, MEDIUM_DIR)
+        processed = self.__check_if_processed()
+        self.dataHandler = DataHandler(processed)
+        self.dataPreProcessor = PreProcessor()
+        self.dataPreProcessor.preprocess(processed, self.dataHandler.stackoverflowQuestionsDataFrame, self.stackProcessedCsv, self.dataHandler.articlesDataFrame, self.mediumProcessedCsv)
+        self.__load_glove_embeddings()
+    
+    def __check_if_processed(self):
+        processed = {
+            'stackoverflow': False,
+            'medium': False
+        }
+        self.stackProcessedCsv = os.path.join(self.stackDir, STACKOVERFLOW_PROCESSED_QUESTIONS_CSV_NAME)
+        if os.path.exists(self.stackProcessedCsv):
+            processed['stackoverflow'] = True
+        self.mediumProcessedCsv = os.path.join(self.mediumDir, MEDIUM_PROCESSED_CSV_NAME)
+        if os.path.exists(self.mediumProcessedCsv):
+            processed['medium'] = True
+        print(processed)
+        return processed
+ 
+    def __load_glove_embeddings(self):
+        print("loading embeddings")
+        embeddingsMatrix = {}
+        with open(self.dataHandler.gloveEmbeddingsFilePath, encoding='utf-8') as f:
+            for line in f:
+                values = line.split()
+                word = values[0]
+                embedding = np.asarray(values[1:], dtype='float32')
+                embeddingsMatrix[word] = embedding
+        self.embeddingsMatrix = embeddingsMatrix
