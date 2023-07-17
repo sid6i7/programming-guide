@@ -2,4 +2,4 @@ kaggle
 python-dotenv
 numpy
 nltk
-scipy
+scikit-learn
