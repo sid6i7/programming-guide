@@ -95,3 +95,76 @@ class RecommendationSystem:
                 embedding = np.asarray(values[1:], dtype='float32')
                 embeddingsMatrix[word] = embedding
         self.embeddingsMatrix = embeddingsMatrix
+    
+    def __sentence_to_embeddings(self, sentence):
+        words = sentence.lower().split()
+        embeddings = [self.embeddingsMatrix[word] for word in words if word in self.embeddingsMatrix]
+
+        return np.mean(embeddings, axis=0)
+    
+    def __filter_df_using_tag(self, tag):
+        print("filtering now")
+        tagIds = self.dataHandler.stackoverflowTagsDataFrame.loc[self.dataHandler.stackoverflowTagsDataFrame['Tag'] == tag]['Id']
+        filteredStackDf = self.dataHandler.stackoverflowQuestionsDataFrame[self.dataHandler.stackoverflowQuestionsDataFrame['Id'].isin(tagIds)]
+        filteredMediumDf = self.dataHandler.articlesDataFrame[self.dataHandler.articlesDataFrame['tags'].apply(lambda x: tag in x)]
+
+        return filteredStackDf, filteredMediumDf
+
+    def __get_top_similar_stackoverflow(self, sentence, stackoverflowDf, n):
+        print("get similar stackoverflow")
+        sentence_embedding = self.__sentence_to_embeddings(sentence).reshape(1, -1)
+        similarQuestions = []
+        for index, row in stackoverflowDf.iterrows():
+            try:
+                other_sentence_embedding = self.__sentence_to_embeddings(row['Title']).reshape(1, -1)
+                similarity = cosine_similarity(sentence_embedding, other_sentence_embedding)[0]
+                if similarity > SIMILARITY_THRESHOLD:
+                    similarQuestions.append({
+                        'id': row['Id'],
+                        'title': row['Title'],
+                        'similarity': similarity
+                    })
+            except Exception as e:
+                print("error")
+                print(e)
+
+        similarQuestions.sort(key=lambda x: x['similarity'], reverse=True)
+        similarQuestions = similarQuestions[:n]
+
+        return similarQuestions
+
+    def __get_top_similar_medium(self, sentence, mediumDf, n):
+        print("get similar medium")
+        sentenceEmbedding = self.__sentence_to_embeddings(sentence).reshape(1, -1)
+        similarArticles = []
+        for index, row in mediumDf.iterrows():
+            try:
+                articleContentEmbedding = self.__sentence_to_embeddings(row['text']).reshape(1, -1)
+                similarity = cosine_similarity(sentenceEmbedding, articleContentEmbedding)[0]
+                if similarity > SIMILARITY_THRESHOLD:
+                    similarArticles.append({
+                        'title': row['title'],
+                        'url': row['url'],
+                        'tags': row['tags'],
+                        'similarity': similarity
+                    })
+            except Exception as e:
+                print("error")
+                print(e)
+
+        similarArticles.sort(key=lambda x: x['similarity'], reverse=True)
+        similarArticles = similarArticles[:n]
+
+        return similarArticles
+
+    def recommend(self, sentence, tag=None, n=1):
+        sentence = self.dataPreProcessor.clean_text(sentence)
+        if tag:
+            stackoverflowFilteredDf, mediumFilteredDf = self.__filter_df_using_tag(tag)
+            stackoverflowSimilarData = self.__get_top_similar_stackoverflow(sentence, stackoverflowFilteredDf, n)
+            mediumSimilarData = self.__get_top_similar_medium(sentence, mediumFilteredDf, n)
+        else:
+            stackoverflowSimilarData = self.__get_top_similar_stackoverflow(sentence, self.dataHandler.stackoverflowQuestionsDataFrame, n)
+            mediumSimilarData = self.__get_top_similar_medium(sentence, self.dataHandler.articlesDataFrame, n)
+    
+        return stackoverflowSimilarData, mediumSimilarData
