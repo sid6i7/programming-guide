@@ -1,0 +1,10 @@
+kaggle
+python-dotenv
+numpy
+nltk
+scikit-learn
+fastapi
+uvicorn
+pydantic
+pandas
+beautifulsoup4

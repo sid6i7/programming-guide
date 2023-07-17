@@ -1,4 +1,4 @@
-from config import *
+from model.config import *
 import re
 from nltk.tokenize import word_tokenize
 from bs4 import BeautifulSoup
@@ -29,9 +29,9 @@ class PreProcessor:
         logger.info("preprocessing stackoverflow")
         stackDf['Body_sentence'], stackDf['Body_code'] = zip(*stackDf['Body'].progress_apply(self.__parse_q_body))
         stackDf['Body_sentence'] = stackDf['Body_sentence'].progress_apply(self.clean_text)
-        stackDf['Title'] = stackDf['Title'].progress_apply(self.clean_text)
+        stackDf['Title_processed'] = stackDf['Title'].progress_apply(self.clean_text)
         stackDf['question'] = stackDf['Title'] + ". " + stackDf['Body_sentence']
-        stackDf[['Id', 'Title', 'question']].to_csv(stackCsvPath)
+        stackDf[['Id', 'Title', 'Title_processed', 'question']].to_csv(stackCsvPath, escapechar='\\')
 
     def preprocess_medium(self, mediumDf, mediumCsvPath):
         logger.info("preprocessing medium")

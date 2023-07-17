@@ -1,4 +1,4 @@
-from config import *
+from model.config import *
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -6,7 +6,7 @@ import kaggle
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
-from preprocess import PreProcessor
+from model.preprocess import PreProcessor
 import logging
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename=LOG_FILE_PATH)
@@ -47,6 +47,12 @@ class DataHandler:
         del self.articlesDataFrame
         del self.stackoverflowQuestionsDataFrame
         del self.stackoverflowTagsDataFrame
+    
+    def __load_data(self, processed):
+        if os.getenv("USE_DBMS").lower() == "true":
+            self.__load_data_from_dbms(processed)
+        else:
+            self.__load_data_to_ram(processed)
     
     def __load_data(self, processed):
         logger.info("loading data")            
@@ -120,8 +126,9 @@ class RecommendationSystem:
         similarQuestions = []
         for index, row in stackoverflowDf.iterrows():
             try:
-                other_sentence_embedding = self.__sentence_to_embeddings(row['Title']).reshape(1, -1)
-                similarity = cosine_similarity(sentence_embedding, other_sentence_embedding)[0]
+                other_sentence_embedding = self.__sentence_to_embeddings(row['Title_processed']).reshape(1, -1)
+                similarity = cosine_similarity(sentence_embedding, other_sentence_embedding).squeeze()
+                similarity = round(float(similarity), 2)
                 if similarity > SIMILARITY_THRESHOLD:
                     similarQuestions.append({
                         'id': row['Id'],
@@ -143,7 +150,8 @@ class RecommendationSystem:
         for index, row in mediumDf.iterrows():
             try:
                 articleContentEmbedding = self.__sentence_to_embeddings(row['text']).reshape(1, -1)
-                similarity = cosine_similarity(sentenceEmbedding, articleContentEmbedding)[0]
+                similarity = cosine_similarity(sentenceEmbedding, articleContentEmbedding).squeeze()
+                similarity = round(float(similarity), 2)
                 if similarity > SIMILARITY_THRESHOLD:
                     similarArticles.append({
                         'title': row['title'],

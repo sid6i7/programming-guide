@@ -1,4 +1,4 @@
-DATA_DIR = './data'
+DATA_DIR = 'model/data'
 GLOVE_DIR = 'glove_embeddings'
 GLOVE_EMBEDDINGS_FILE_NAME = 'glove.6B.300d.txt'
 GLOVE_EMBEDDINGS_KAGGLE_ID = 'anmolkumar/glove-embeddings'
@@ -14,9 +14,9 @@ STACKOVERFLOW_PROCESSED_QUESTIONS_CSV_NAME = 'stack_questions_processed.csv'
 STACKOVERFLOW_TAGS_CSV_NAME = 'Tags.csv'
 STACKOVERFLOW_KAGGLE_ID = 'stackoverflow/stacksample'
 
-KAGGLE_API_KEY = "./kaggle.json"
+KAGGLE_API_KEY = "model/kaggle.json"
 PUNCTUATIONS=r'''!()-[]{};:'"\,<>./?@#$%^&*_~'''
 
 SIMILARITY_THRESHOLD = 0.4
 
-LOG_FILE_PATH = './model.log'
+LOG_FILE_PATH = 'model/model.log'

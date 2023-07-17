@@ -1,5 +1,0 @@
-kaggle
-python-dotenv
-numpy
-nltk
-scikit-learn
