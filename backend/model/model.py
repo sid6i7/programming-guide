@@ -3,11 +3,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 import kaggle
+import zipfile
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 from model.preprocess import PreProcessor
 import logging
+import random
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s', filename=LOG_FILE_PATH)
 logger = logging.getLogger(__name__)
@@ -41,32 +43,32 @@ class DataHandler:
         self.stackoverflowQuestionsCsvFilePath = os.path.join(self.stackoverflowPath, STACKOVERFLOW_QUESTIONS_CSV_NAME)
         self.stackoverflowTagsCsvFilePath = os.path.join(self.stackoverflowPath, STACKOVERFLOW_TAGS_CSV_NAME)
         if not os.path.exists(self.stackoverflowQuestionsCsvFilePath) and not os.path.exists(self.stackoverflowTagsCsvFilePath):
-            kaggle.api.dataset_download_files(STACKOVERFLOW_KAGGLE_ID, path=self.stackoverflowPath, unzip=True, quiet=False)
-    
+            for csv in STACKOVERFLOW_DOWNLOAD_FILES:
+                kaggle.api.dataset_download_file(STACKOVERFLOW_KAGGLE_ID, path=self.stackoverflowPath,quiet=False, file_name=csv)
+                zipPath = f"{os.path.join(self.stackoverflowPath, csv)}.zip"
+                with zipfile.ZipFile(zipPath, 'r') as zip_ref:
+                    zip_ref.extractall(self.stackoverflowPath)
+                os.remove(zipPath)
+
     def remove_csvs(self):
         del self.articlesDataFrame
         del self.stackoverflowQuestionsDataFrame
         del self.stackoverflowTagsDataFrame
     
     def __load_data(self, processed):
-        if os.getenv("USE_DBMS").lower() == "true":
-            self.__load_data_from_dbms(processed)
-        else:
-            self.__load_data_to_ram(processed)
-    
-    def __load_data(self, processed):
-        logger.info("loading data")            
+        logger.info("loading data")
         try:
             if processed['medium']:
                 self.articlesDataFrame = pd.read_csv(os.path.join(self.mediumPath, MEDIUM_PROCESSED_CSV_NAME))
             else:
-                self.articlesDataFrame = pd.read_csv(self.mediumCsvFilePath)
-            if processed['stackoverflow']:
-                self.stackoverflowQuestionsDataFrame = pd.read_csv(os.path.join(self.stackoverflowPath, STACKOVERFLOW_PROCESSED_QUESTIONS_CSV_NAME), encoding = "ISO-8859-1")
-            else:
-                self.stackoverflowQuestionsDataFrame = pd.read_csv(self.stackoverflowQuestionsCsvFilePath, encoding = "ISO-8859-1")
+                self.articlesDataFrame = pd.read_csv(self.mediumCsvFilePath, skiprows=lambda i: i > 0 and random.random() > PERCENTAGE_MEDIUM_DATA / 100)
 
-            self.stackoverflowTagsDataFrame = pd.read_csv(self.stackoverflowTagsCsvFilePath, encoding = "ISO-8859-1")
+            if processed['stackoverflow']:
+                self.stackoverflowQuestionsDataFrame = pd.read_csv(os.path.join(self.stackoverflowPath, STACKOVERFLOW_PROCESSED_QUESTIONS_CSV_NAME), encoding="ISO-8859-1")
+            else:
+                self.stackoverflowQuestionsDataFrame = pd.read_csv(self.stackoverflowQuestionsCsvFilePath, encoding="ISO-8859-1", skiprows=lambda i: i > 0 and random.random() > PERCENTAGE_STACKOVERFLOW_DATA / 100)
+
+            self.stackoverflowTagsDataFrame = pd.read_csv(self.stackoverflowTagsCsvFilePath, encoding="ISO-8859-1")
         except Exception as e:
             logger.info(f"ERROR: no csv found: {e}")
 

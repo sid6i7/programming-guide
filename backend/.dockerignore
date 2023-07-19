@@ -1,0 +1,4 @@
+model/data
+venv-guide-backend
+__pycache__
+.env

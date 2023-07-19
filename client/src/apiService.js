@@ -1,10 +1,9 @@
 const submitForm = async (question, selectedTags, nOfRecommendations) => {
     const recommendEndpoint = process.env.REACT_APP_RECOMMEND_ENDPOINT;
     const apiUrl = process.env.REACT_APP_API_URL;
-    const apiPort = process.env.REACT_APP_API_PORT;
-    console.log(`${apiUrl}:${apiPort}${recommendEndpoint}`)
+    console.log(`${apiUrl}${recommendEndpoint}`)
     try {
-      const response = await fetch(`${apiUrl}:${apiPort}${recommendEndpoint}`, {
+      const response = await fetch(`${apiUrl}${recommendEndpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

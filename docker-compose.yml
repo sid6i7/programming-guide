@@ -1,0 +1,28 @@
+version: '3'
+services:
+  nginx:
+    restart: always
+    build:
+      dockerfile: Dockerfile
+      context: ./nginx
+    ports:
+      - '80:80'
+    depends_on:
+      - frontend
+      - backend
+  frontend:
+    build:
+      dockerfile: Dockerfile
+      context: ./client
+    environment:
+      - REACT_APP_RECOMMEND_ENDPOINT=/recommend
+      - REACT_APP_API_URL=/api
+  backend:
+    build:
+      dockerfile: Dockerfile
+      context: ./backend
+    volumes:
+      - ./backend/model/data:/backend/model/data
+    environment:
+      - KAGGLE_USERNAME=${KAGGLE_USERNAME}
+      - KAGGLE_KEY=${KAGGLE_KEY}

@@ -13,6 +13,7 @@ STACKOVERFLOW_QUESTIONS_CSV_NAME = 'Questions.csv'
 STACKOVERFLOW_PROCESSED_QUESTIONS_CSV_NAME = 'stack_questions_processed.csv'
 STACKOVERFLOW_TAGS_CSV_NAME = 'Tags.csv'
 STACKOVERFLOW_KAGGLE_ID = 'stackoverflow/stacksample'
+STACKOVERFLOW_DOWNLOAD_FILES = ['Tags.csv', 'Questions.csv']
 
 KAGGLE_API_KEY = "model/kaggle.json"
 PUNCTUATIONS=r'''!()-[]{};:'"\,<>./?@#$%^&*_~'''
@@ -20,3 +21,6 @@ PUNCTUATIONS=r'''!()-[]{};:'"\,<>./?@#$%^&*_~'''
 SIMILARITY_THRESHOLD = 40
 
 LOG_FILE_PATH = 'model/model.log'
+
+PERCENTAGE_MEDIUM_DATA = 10
+PERCENTAGE_STACKOVERFLOW_DATA = 10
