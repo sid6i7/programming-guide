@@ -3,6 +3,7 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 import kaggle
+import zipfile
 import numpy as np
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
@@ -44,7 +45,11 @@ class DataHandler:
         if not os.path.exists(self.stackoverflowQuestionsCsvFilePath) and not os.path.exists(self.stackoverflowTagsCsvFilePath):
             for csv in STACKOVERFLOW_DOWNLOAD_FILES:
                 kaggle.api.dataset_download_file(STACKOVERFLOW_KAGGLE_ID, path=self.stackoverflowPath,quiet=False, file_name=csv)
-    
+                zipPath = f"{os.path.join(self.stackoverflowPath, csv)}.zip"
+                with zipfile.ZipFile(zipPath, 'r') as zip_ref:
+                    zip_ref.extractall(self.stackoverflowPath)
+                os.remove(zipPath)
+
     def remove_csvs(self):
         del self.articlesDataFrame
         del self.stackoverflowQuestionsDataFrame
