@@ -1,0 +1,12 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+  
+.centered-image {
+    max-width: 100%;
+    height: auto;
+    max-height: 80vh; /* Adjust the maximum height as needed */
+  }  
