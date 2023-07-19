@@ -112,11 +112,12 @@ class RecommendationSystem:
 
         return np.mean(embeddings, axis=0)
     
-    def __filter_df_using_tag(self, tag):
+    def __filter_df_using_tag(self, tags):
         logger.info("filtering now")
-        tagIds = self.dataHandler.stackoverflowTagsDataFrame.loc[self.dataHandler.stackoverflowTagsDataFrame['Tag'] == tag]['Id']
+
+        tagIds = self.dataHandler.stackoverflowTagsDataFrame.loc[self.dataHandler.stackoverflowTagsDataFrame['Tag'].isin(tags)]['Id']
         filteredStackDf = self.dataHandler.stackoverflowQuestionsDataFrame[self.dataHandler.stackoverflowQuestionsDataFrame['Id'].isin(tagIds)]
-        filteredMediumDf = self.dataHandler.articlesDataFrame[self.dataHandler.articlesDataFrame['tags'].apply(lambda x: tag in x)]
+        filteredMediumDf = self.dataHandler.articlesDataFrame[self.dataHandler.articlesDataFrame['tags'].apply(lambda x: any(tag in x for tag in tags))]
 
         return filteredStackDf, filteredMediumDf
 
@@ -128,7 +129,7 @@ class RecommendationSystem:
             try:
                 other_sentence_embedding = self.__sentence_to_embeddings(row['Title_processed']).reshape(1, -1)
                 similarity = cosine_similarity(sentence_embedding, other_sentence_embedding).squeeze()
-                similarity = round(float(similarity), 2)
+                similarity = round(float(similarity), 2) * 100
                 if similarity > SIMILARITY_THRESHOLD:
                     similarQuestions.append({
                         'id': row['Id'],
@@ -151,7 +152,7 @@ class RecommendationSystem:
             try:
                 articleContentEmbedding = self.__sentence_to_embeddings(row['text']).reshape(1, -1)
                 similarity = cosine_similarity(sentenceEmbedding, articleContentEmbedding).squeeze()
-                similarity = round(float(similarity), 2)
+                similarity = round(float(similarity), 2) * 100
                 if similarity > SIMILARITY_THRESHOLD:
                     similarArticles.append({
                         'title': row['title'],
@@ -167,11 +168,11 @@ class RecommendationSystem:
 
         return similarArticles
 
-    def recommend(self, sentence, tag=None, n=1):
+    def recommend(self, sentence, tags=None, n=1):
         logger.info(f"start recommendation for '{sentence}'")
         sentence = self.dataPreProcessor.clean_text(sentence)
-        if tag:
-            stackoverflowFilteredDf, mediumFilteredDf = self.__filter_df_using_tag(tag)
+        if tags:
+            stackoverflowFilteredDf, mediumFilteredDf = self.__filter_df_using_tag(tags)
             stackoverflowSimilarData = self.__get_top_similar_stackoverflow(sentence, stackoverflowFilteredDf, n)
             mediumSimilarData = self.__get_top_similar_medium(sentence, mediumFilteredDf, n)
         else:

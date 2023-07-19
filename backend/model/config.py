@@ -17,6 +17,6 @@ STACKOVERFLOW_KAGGLE_ID = 'stackoverflow/stacksample'
 KAGGLE_API_KEY = "model/kaggle.json"
 PUNCTUATIONS=r'''!()-[]{};:'"\,<>./?@#$%^&*_~'''
 
-SIMILARITY_THRESHOLD = 0.4
+SIMILARITY_THRESHOLD = 40
 
 LOG_FILE_PATH = 'model/model.log'
