@@ -16,6 +16,15 @@ function App() {
     <div>
       <Banner />
       <Form onRecommendation={handleRecommendation} />
+      {recommendation && (
+        <div className="mt-5">
+          <Recommendation
+            stackoverflow={recommendation.stackoverflow}
+            medium={recommendation.medium}
+            question={recommendation.question}
+          />
+        </div>
+      )}
     </div>
   );
 }

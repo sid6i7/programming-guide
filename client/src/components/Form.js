@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import CreatableSelect from 'react-select/creatable';
+import submitForm from '../apiService';
 import InputSlider from 'react-input-slider';
 
 export const Form = ({ onRecommendation }) => {
@@ -20,10 +21,14 @@ export const Form = ({ onRecommendation }) => {
     const form = e.currentTarget;
     if (form.checkValidity()) {
       onRecommendation(null);
-      
+      const question = form.question.value.trim();
+      const tags = selectedOptions.map((tagDict) => tagDict['value']);
+      console.log('Question:', question);
+      console.log('Selected Options:', tags);
       setIsLoading(true);
       try {
-        
+        const recommendations = await submitForm(question, tags, numRecommendations);
+        onRecommendation(recommendations.stackoverflow, recommendations.medium, question);
       } catch (error) {
         console.log(`Error occurred: ${error}`);
       } finally {
