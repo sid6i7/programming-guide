@@ -15,12 +15,35 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 logger = logging.getLogger(__name__)
 
 class DataHandler:
+    """
+    A class responsible for handling data download, preprocessing, and loading.
+
+    Attributes:
+        processed (dict): A dictionary indicating whether the data is processed for Stack Overflow and Medium.
+
+    Methods:
+        __init__(self, processed): Initializes the DataHandler object and downloads, preprocesses, and loads the data.
+        __make_dirs(self): Creates necessary directories for data storage if they don't exist.
+        __download_data(self): Downloads necessary data files if they don't exist.
+        remove_csvs(self): Removes the loaded CSV data from memory.
+        __load_data(self, processed): Loads the data from CSV files.
+    """
+
     def __init__(self, processed):
+        """
+        Initializes the DataHandler object and downloads, preprocesses, and loads the data.
+
+        Args:
+            processed (dict): A dictionary indicating whether the data is processed for Stack Overflow and Medium.
+        """
         self.__make_dirs()
         self.__download_data()
         self.__load_data(processed)
     
     def __make_dirs(self):
+        """
+        Creates necessary directories for data storage if they don't exist.
+        """
         if not os.path.exists(DATA_DIR):
             os.mkdir(DATA_DIR)
         self.glovePath = os.path.join(DATA_DIR, GLOVE_DIR)
@@ -34,6 +57,9 @@ class DataHandler:
             os.mkdir(self.stackoverflowPath)
 
     def __download_data(self):
+        """
+        Downloads necessary data files if they don't exist.
+        """
         self.gloveEmbeddingsFilePath = os.path.join(self.glovePath, GLOVE_EMBEDDINGS_FILE_NAME)
         if not os.path.exists(self.gloveEmbeddingsFilePath):
             kaggle.api.dataset_download_files(GLOVE_EMBEDDINGS_KAGGLE_ID, path=self.glovePath, unzip=True, quiet=False)
@@ -51,11 +77,20 @@ class DataHandler:
                 os.remove(zipPath)
 
     def remove_csvs(self):
+        """
+        Removes the loaded CSV data from memory.
+        """
         del self.articlesDataFrame
         del self.stackoverflowQuestionsDataFrame
         del self.stackoverflowTagsDataFrame
     
     def __load_data(self, processed):
+        """
+        Loads the data from CSV files.
+
+        Args:
+            processed (dict): A dictionary indicating whether the data is processed for Stack Overflow and Medium.
+        """
         logger.info("loading data")
         try:
             if processed['medium']:
@@ -73,8 +108,24 @@ class DataHandler:
             logger.info(f"ERROR: no csv found: {e}")
 
 class RecommendationSystem:
+    """
+    A class representing the recommendation system.
+
+    Methods:
+        __init__(self): Initializes the RecommendationSystem object and sets up the necessary components.
+        __check_if_processed(self): Checks if data for Stack Overflow and Medium is already processed.
+        __load_glove_embeddings(self): Loads the pre-trained GloVe word embeddings.
+        __sentence_to_embeddings(self, sentence): Converts a sentence to its word embeddings.
+        __filter_df_using_tag(self, tags): Filters the dataframes based on input tags.
+        __get_top_similar_stackoverflow(self, sentence, stackoverflowDf, n): Retrieves top similar Stack Overflow questions.
+        __get_top_similar_medium(self, sentence, mediumDf, n): Retrieves top similar Medium articles.
+        recommend(self, sentence, tags=None, n=1): Recommends Stack Overflow questions and Medium articles based on input.
+    """
 
     def __init__(self) -> None:
+        """
+        Initializes the RecommendationSystem object and prepares the data.
+        """
         self.stackDir = os.path.join(DATA_DIR, STACKOVERFLOW_DIR)
         self.mediumDir = os.path.join(DATA_DIR, MEDIUM_DIR)
         processed = self.__check_if_processed()
@@ -84,6 +135,12 @@ class RecommendationSystem:
         self.__load_glove_embeddings()
     
     def __check_if_processed(self):
+        """
+        Checks if the data is already preprocessed.
+
+        Returns:
+            dict: A dictionary indicating whether the data is processed for Stack Overflow and Medium.
+        """
         processed = {
             'stackoverflow': False,
             'medium': False
@@ -98,6 +155,9 @@ class RecommendationSystem:
         return processed
  
     def __load_glove_embeddings(self):
+        """
+        Loads the GloVe word embeddings into memory.
+        """
         logger.info("loading embeddings")
         embeddingsMatrix = {}
         with open(self.dataHandler.gloveEmbeddingsFilePath, encoding='utf-8') as f:
@@ -109,12 +169,30 @@ class RecommendationSystem:
         self.embeddingsMatrix = embeddingsMatrix
     
     def __sentence_to_embeddings(self, sentence):
+        """
+        Converts a sentence into word embeddings using the GloVe embeddings.
+
+        Args:
+            sentence (str): The input sentence to convert.
+
+        Returns:
+            numpy.array: The average word embeddings of the input sentence.
+        """
         words = sentence.lower().split()
         embeddings = [self.embeddingsMatrix[word] for word in words if word in self.embeddingsMatrix]
 
         return np.mean(embeddings, axis=0)
     
     def __filter_df_using_tag(self, tags):
+        """
+        Filters the Stack Overflow and Medium dataframes based on the provided tags.
+
+        Args:
+            tags (list): A list of tags to filter the dataframes.
+
+        Returns:
+            pandas.DataFrame, pandas.DataFrame: Filtered dataframes for Stack Overflow and Medium.
+        """
         logger.info("filtering now")
 
         tagIds = self.dataHandler.stackoverflowTagsDataFrame.loc[self.dataHandler.stackoverflowTagsDataFrame['Tag'].isin(tags)]['Id']
@@ -124,6 +202,17 @@ class RecommendationSystem:
         return filteredStackDf, filteredMediumDf
 
     def __get_top_similar_stackoverflow(self, sentence, stackoverflowDf, n):
+        """
+        Finds the top-n similar Stack Overflow questions to the input sentence.
+
+        Args:
+            sentence (str): The input sentence to find similar questions to.
+            stackoverflowDf (pandas.DataFrame): The dataframe containing Stack Overflow questions.
+            n (int): The number of similar questions to return.
+
+        Returns:
+            list: A list of dictionaries containing top-n similar Stack Overflow questions with their ids, titles, and similarities.
+        """
         logger.info("get similar stackoverflow")
         sentence_embedding = self.__sentence_to_embeddings(sentence).reshape(1, -1)
         similarQuestions = []
@@ -147,6 +236,17 @@ class RecommendationSystem:
         return similarQuestions
 
     def __get_top_similar_medium(self, sentence, mediumDf, n):
+        """
+        Finds the top-n similar Medium articles to the input sentence.
+
+        Args:
+            sentence (str): The input sentence to find similar articles to.
+            mediumDf (pandas.DataFrame): The dataframe containing Medium articles.
+            n (int): The number of similar articles to return.
+
+        Returns:
+            list: A list of dictionaries containing top-n similar Medium articles with their titles, URLs, tags, and similarities.
+        """
         logger.info("get similar medium")
         sentenceEmbedding = self.__sentence_to_embeddings(sentence).reshape(1, -1)
         similarArticles = []
@@ -171,6 +271,17 @@ class RecommendationSystem:
         return similarArticles
 
     def recommend(self, sentence, tags=None, n=1):
+        """
+        Recommends similar content based on user input.
+
+        Args:
+            sentence (str): The input sentence to find similar content to.
+            tags (list, optional): A list of tags to filter the content. Defaults to None.
+            n (int, optional): The number of recommendations to return. Defaults to 1.
+
+        Returns:
+            tuple: A tuple containing two lists of recommended content from Stack Overflow and Medium, respectively.
+        """
         logger.info(f"start recommendation for '{sentence}'")
         sentence = self.dataPreProcessor.clean_text(sentence)
         if tags:
