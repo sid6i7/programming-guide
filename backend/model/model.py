@@ -180,8 +180,10 @@ class RecommendationSystem:
         """
         words = sentence.lower().split()
         embeddings = [self.embeddingsMatrix[word] for word in words if word in self.embeddingsMatrix]
-
-        return np.mean(embeddings, axis=0)
+        if len(embeddings) == 0:
+            return None
+        else:
+            return np.mean(embeddings, axis=0)
     
     def __filter_df_using_tag(self, tags):
         """
@@ -198,7 +200,8 @@ class RecommendationSystem:
         tagIds = self.dataHandler.stackoverflowTagsDataFrame.loc[self.dataHandler.stackoverflowTagsDataFrame['Tag'].isin(tags)]['Id']
         filteredStackDf = self.dataHandler.stackoverflowQuestionsDataFrame[self.dataHandler.stackoverflowQuestionsDataFrame['Id'].isin(tagIds)]
         filteredMediumDf = self.dataHandler.articlesDataFrame[self.dataHandler.articlesDataFrame['tags'].apply(lambda x: any(tag in x for tag in tags))]
-
+        filteredStackDf.dropna(subset=['Title_processed'], inplace=True)
+        filteredMediumDf.dropna(subset = ['title'], inplace=True)
         return filteredStackDf, filteredMediumDf
 
     def __get_top_similar_stackoverflow(self, sentence, stackoverflowDf, n):
@@ -213,22 +216,31 @@ class RecommendationSystem:
         Returns:
             list: A list of dictionaries containing top-n similar Stack Overflow questions with their ids, titles, and similarities.
         """
-        logger.info("get similar stackoverflow")
         sentence_embedding = self.__sentence_to_embeddings(sentence).reshape(1, -1)
+
+        other_sentence_embeddings = stackoverflowDf['Title_processed'].apply(self.__sentence_to_embeddings)
+        other_sentence_embeddings.dropna(inplace=True)
+        sentence_embedding = sentence_embedding.reshape(1, -1)
+
+        indices = other_sentence_embeddings.index
+        other_sentence_embeddings = np.stack(other_sentence_embeddings.values)
+
+        similarities = cosine_similarity(sentence_embedding, other_sentence_embeddings).squeeze()
+        similarities = np.round(similarities * 100, 2)
+
+        index_similarity_dict = dict(zip(indices, similarities))
+
+        relevant_indices = [index for index, similarity in index_similarity_dict.items() if similarity > SIMILARITY_THRESHOLD]
+        similar_questions_data = stackoverflowDf.loc[relevant_indices]
+
         similarQuestions = []
-        for index, row in stackoverflowDf.iterrows():
-            try:
-                other_sentence_embedding = self.__sentence_to_embeddings(row['Title_processed']).reshape(1, -1)
-                similarity = cosine_similarity(sentence_embedding, other_sentence_embedding).squeeze()
-                similarity = round(float(similarity), 2) * 100
-                if similarity > SIMILARITY_THRESHOLD:
-                    similarQuestions.append({
-                        'id': row['Id'],
-                        'title': row['Title'],
-                        'similarity': similarity
-                    })
-            except Exception as e:
-                logger.error(f"{e} no embeddings present for stackoverflow question: {row['Title']}")
+        for _, row in similar_questions_data.iterrows():
+            similarity = index_similarity_dict[row.name]
+            similarQuestions.append({
+                'id': row['Id'],
+                'title': row['Title'],
+                'similarity': similarity
+            })
 
         similarQuestions.sort(key=lambda x: x['similarity'], reverse=True)
         similarQuestions = similarQuestions[:n]
@@ -248,22 +260,31 @@ class RecommendationSystem:
             list: A list of dictionaries containing top-n similar Medium articles with their titles, URLs, tags, and similarities.
         """
         logger.info("get similar medium")
-        sentenceEmbedding = self.__sentence_to_embeddings(sentence).reshape(1, -1)
+        articleEmbedding = self.__sentence_to_embeddings(sentence).reshape(1, -1)
+        other_article_embeddings = mediumDf['text'].apply(self.__sentence_to_embeddings)
+
+        other_article_embeddings.dropna(inplace=True)
+        indices = other_article_embeddings.index
+        other_article_embeddings = np.stack(other_article_embeddings.values)
+
+        similarities = cosine_similarity(articleEmbedding, other_article_embeddings).squeeze()
+        similarities = np.round(similarities * 100, 2)
+
+        index_similarity_dict = dict(zip(indices, similarities))
+
+        relevant_indices = [index for index, similarity in index_similarity_dict.items() if similarity > SIMILARITY_THRESHOLD]
+
+        similar_articles_data = mediumDf.loc[relevant_indices]
+
         similarArticles = []
-        for index, row in mediumDf.iterrows():
-            try:
-                articleContentEmbedding = self.__sentence_to_embeddings(row['text']).reshape(1, -1)
-                similarity = cosine_similarity(sentenceEmbedding, articleContentEmbedding).squeeze()
-                similarity = round(float(similarity), 2) * 100
-                if similarity > SIMILARITY_THRESHOLD:
-                    similarArticles.append({
-                        'title': row['title'],
-                        'url': row['url'],
-                        'tags': row['tags'],
-                        'similarity': similarity
-                    })
-            except Exception as e:
-                logger.error(f"error: {e} for medium article: {row['title']}")
+        for _, row in similar_articles_data.iterrows():
+            similarity = index_similarity_dict[row.name]
+            similarArticles.append({
+                'title': row['title'],
+                'url': row['url'],
+                'tags': row['tags'],
+                'similarity': similarity
+            })
 
         similarArticles.sort(key=lambda x: x['similarity'], reverse=True)
         similarArticles = similarArticles[:n]
