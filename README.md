@@ -9,6 +9,8 @@
       <a href="#about-the-project">About The Project</a>
       <ul>
         <li><a href="#built-with">Built With</a></li>
+        <li><a href="#data-source">Data Source</a></li>
+        <li><a href="#project-structure">Project Structure</a></li>
       </ul>
     </li>
     <li>
@@ -19,14 +21,13 @@
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
+    <ul>
+        <li>App</li>
+        <li>Output</li>
+    </ul>
+    <li><a href="#references">References</a></li>
   </ol>
 
-<!-- ABOUT THE PROJECT -->
 ## About The Project
 
 This is a project that aims to provide you with answers for your programming questions by finding and displaying similar questions from stackoverflow and any similar articles from medium.
@@ -114,7 +115,7 @@ The project is dockerized and makes use of docker compose. Therefore the only th
    docker compose up
    ```
 
-The project should be up when you visit localhost
+The project should be up when you visit localhost.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -148,20 +149,14 @@ The project should be up when you visit localhost
 </div>
 <hr>
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p
+## References
 
-<!-- ACKNOWLEDGMENTS -->
-## Acknowledgments
-
-Use this space to list resources you find helpful and would like to give credit to. I've included a few of my favorites to kick things off!
-
-* [Choose an Open Source License](https://choosealicense.com)
-* [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
-* [Malven's Flexbox Cheatsheet](https://flexbox.malven.co/)
-* [Malven's Grid Cheatsheet](https://grid.malven.co/)
-* [Img Shields](https://shields.io)
-* [GitHub Pages](https://pages.github.com)
-* [Font Awesome](https://fontawesome.com)
-* [React Icons](https://react-icons.github.io/react-icons/search)
-
+* [GloVe Embeddings](https://nlp.stanford.edu/pubs/glove.pdf)
+* [Docker Documentation](https://docs.docker.com/reference/)
+* [React JS Documentation](https://react.dev/reference/react)
+* [Pandas Documentation](https://pandas.pydata.org/docs/)
+* [Numpy Documentation](https://numpy.org/doc/)
+* [NLTK Documentation](https://www.nltk.org/api/nltk.html)
+* [Nginx Documentation](http://nginx.org/en/docs/)
+  
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
