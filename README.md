@@ -55,8 +55,7 @@ Both the datasets were sourced from kaggle.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Project Structure
-.
-.
+```
 ├── backend/
 │   ├── model/
 │   │   ├── config.py
@@ -91,6 +90,7 @@ Both the datasets were sourced from kaggle.
 ├── .gitignore
 ├── docker-compose.yml
 └── README.md
+```
 
 ## Getting Started
 
