@@ -235,7 +235,7 @@ class RecommendationSystem:
 
         similarQuestions = []
         for _, row in similar_questions_data.iterrows():
-            similarity = index_similarity_dict[row.name]
+            similarity = float(index_similarity_dict[row.name])
             similarQuestions.append({
                 'id': row['Id'],
                 'title': row['Title'],
@@ -278,7 +278,7 @@ class RecommendationSystem:
 
         similarArticles = []
         for _, row in similar_articles_data.iterrows():
-            similarity = index_similarity_dict[row.name]
+            similarity = float(index_similarity_dict[row.name])
             similarArticles.append({
                 'title': row['title'],
                 'url': row['url'],
