@@ -47,7 +47,7 @@ Even though, a simple google search already achieves this but I still wanted to 
 
 ### Flow
 <div style="display: flex; justify-content: center;">
-  <img src="./src/images/flow.png" alt="App">
+  <img src="./src/images/flow.jpg" alt="App">
 </div>
 
 ### Built With
