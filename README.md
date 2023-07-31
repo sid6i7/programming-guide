@@ -10,6 +10,8 @@
     <li>
       <a href="#about-the-project">About The Project</a>
       <ul>
+        <li><a href="#motivation">Motivation</a></li>
+        <li><a href="#flow">Flow</a></li>
         <li><a href="#built-with">Built With</a></li>
         <li><a href="#data-source">Data Source</a></li>
         <li><a href="#project-structure">Project Structure</a></li>
@@ -38,17 +40,22 @@ It uses stackoverflow data as well as medium articles data available on kaggle f
 
 The sentences are embedded using GloVe embeddings, data is filtered on the basis of tags provided and then cosine similarity is used to get top n most similar stackoverflow questions and medium articles.
 
-### Flow
-question -> pre-processed -> embeddings -> filtered data using tag -> similarity score -> display top n results
+### Motivation
+Instead of doing multiple searches on stackoverflow, medium, geeksforgeeks etc, I have always wanted a one-stop solution for any programming related question that I have had like "how to reverse a string in javascript".
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+Even though, a simple google search already achieves this but I still wanted to understand how it does that. Ever since I started programming, I have always had a dream to create a search engine/recommendation engine only for programming. This project is a very small proof of concept that its indeed possible to achieve that.
+
+### Flow
+<div style="display: flex; justify-content: center;">
+  <img src="./src/images/flow.png" alt="App">
+</div>
 
 ### Built With
 
-- **Frontend**: ReactJS
-- **Backend**: FastAPI
-- **Model**: GloVe + Cosine Similarity
-- **Web Server**: Nginx
+- **Frontend**: [ReactJS](https://react.dev/)
+- **Backend**: [FastAPI](https://fastapi.tiangolo.com/)
+- **Model**: [GloVe](https://nlp.stanford.edu/projects/glove/) + [Cosine Similarity](https://www.sciencedirect.com/topics/computer-science/cosine-similarity)
+- **Web Server**: [Nginx](https://www.nginx.com/)
 
 ### Data Source
 Both the datasets were sourced from kaggle.
@@ -101,11 +108,11 @@ The project is dockerized and makes use of docker compose. Therefore the only th
 
 ### Prerequisites
 
-* Docker: [how to install docker](https://docs.docker.com/get-docker/)
+* Docker: [How to install docker?](https://docs.docker.com/get-docker/)
   
 ### Installation
 
-1. Get kaggle API key. [How to get kaggle API key?](https://christianjmills.com/posts/kaggle-obtain-api-key-tutorial/)
+1. Get kaggle API key. [How to get a kaggle API key?](https://christianjmills.com/posts/kaggle-obtain-api-key-tutorial/)
    
 2. Store kaggle API credentials as an .env file in the root directory. It should be in the following format
     ```
@@ -116,8 +123,36 @@ The project is dockerized and makes use of docker compose. Therefore the only th
    ```sh
    docker compose up
    ```
-
 The project should be up when you visit localhost.
+
+**Note**: First run **might take time** because it downloads the data, loads it in memory, pre-processes it and finally stores it for further use.
+
+
+### About Config
+Following variables can hugely affect the quality of recommendations. These can be changed in the **config.py**.
+
+**SIMILARITY_THRESHOLD**: Is used to compare how similar the input question should be to the title of the related stackoverflow questions as well as title of the medium articles.
+- It can range from 0 to 100
+- Increase this to increase quality of recommendation
+- Increasing it too much might lead to no results in some cases.
+
+**PERCENTAGE_MEDIUM_DATA**: Amount of medium articles data to use. If you wish to change this, don't forget to delete the preprocessed csv file for medium articles found in ./backend/model/data/medium_articles/medium_processed.csv
+- It can range from 0 to 100
+- Increasing this might lead to increase in quality of recommendations but willwill also increase the computation in terms of RAM and CPU.
+
+**PERCENTAGE_STACKOVERFLOW_DATA**: Amount of stackoverflow data to use. If you wish to change this, don't forget to delete the preprocessed csv file for stackoverflow questions found in ./backend/model/data/stackoverflow/stack_questions_processed.csv
+- It can range from 0 to 100
+- Increasing this might lead to increase in quality of recommendations but will also increase the computation in terms of RAM and CPU.
+
+**GLOVE_EMBEDDINGS_FILE_NAME**: The type of GloVe embeddings to use. There are four options available for this. The varying number (50, 100, 200, 300) indicates the size/length of the vector that each word gets represented by.
+
+Choosing a higher dimensional embeddings might lead to better recommendations but will again require more computation in terms of RAM and CPU.
+
+**Options are:**
+- glove.6B.50d.txt
+- glove.6B.100d.txt
+- glove.6B.200d.txt
+- glove.6B.300d.txt
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
