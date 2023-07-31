@@ -115,10 +115,10 @@ The project is dockerized and makes use of docker compose. Therefore the only th
 
 1. Get kaggle API key. [How to get a kaggle API key?](https://christianjmills.com/posts/kaggle-obtain-api-key-tutorial/)
    
-2. Store kaggle API credentials as an .env file in the root directory. It should be in the following format
+2. Store kaggle API credentials as an .env file in the root directory. It should be in the following format. Don't include any spaces.
     ```
-    KAGGLE_USERNAME = your_kaggle_username
-    KAGGLE_KEY = your_api_key
+    KAGGLE_USERNAME=your_kaggle_username
+    KAGGLE_KEY=your_api_key
     ```
 3. Run docker compose in the root directory.
    ```sh
