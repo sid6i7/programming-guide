@@ -38,7 +38,7 @@ class DataHandler:
         """
         self.__make_dirs()
         self.__download_data()
-        self.__load_data(processed)
+        self.load_data(processed)
     
     def __make_dirs(self):
         """
@@ -84,7 +84,7 @@ class DataHandler:
         del self.stackoverflowQuestionsDataFrame
         del self.stackoverflowTagsDataFrame
     
-    def __load_data(self, processed):
+    def load_data(self, processed):
         """
         Loads the data from CSV files.
 
@@ -94,16 +94,16 @@ class DataHandler:
         logger.info("loading data")
         try:
             if processed['medium']:
-                self.articlesDataFrame = pd.read_csv(os.path.join(self.mediumPath, MEDIUM_PROCESSED_CSV_NAME))
+                self.articlesDataFrame = pd.read_csv(os.path.join(self.mediumPath, MEDIUM_PROCESSED_CSV_NAME)).dropna()
             else:
-                self.articlesDataFrame = pd.read_csv(self.mediumCsvFilePath, skiprows=lambda i: i > 0 and random.random() > PERCENTAGE_MEDIUM_DATA / 100)
+                self.articlesDataFrame = pd.read_csv(self.mediumCsvFilePath, skiprows=lambda i: i > 0 and random.random() > PERCENTAGE_MEDIUM_DATA / 100).dropna()
 
             if processed['stackoverflow']:
-                self.stackoverflowQuestionsDataFrame = pd.read_csv(os.path.join(self.stackoverflowPath, STACKOVERFLOW_PROCESSED_QUESTIONS_CSV_NAME), encoding="ISO-8859-1")
+                self.stackoverflowQuestionsDataFrame = pd.read_csv(os.path.join(self.stackoverflowPath, STACKOVERFLOW_PROCESSED_QUESTIONS_CSV_NAME), encoding="ISO-8859-1").dropna()
             else:
-                self.stackoverflowQuestionsDataFrame = pd.read_csv(self.stackoverflowQuestionsCsvFilePath, encoding="ISO-8859-1", skiprows=lambda i: i > 0 and random.random() > PERCENTAGE_STACKOVERFLOW_DATA / 100)
+                self.stackoverflowQuestionsDataFrame = pd.read_csv(self.stackoverflowQuestionsCsvFilePath, encoding="ISO-8859-1", skiprows=lambda i: i > 0 and random.random() > PERCENTAGE_STACKOVERFLOW_DATA / 100).dropna()
 
-            self.stackoverflowTagsDataFrame = pd.read_csv(self.stackoverflowTagsCsvFilePath, encoding="ISO-8859-1")
+            self.stackoverflowTagsDataFrame = pd.read_csv(self.stackoverflowTagsCsvFilePath, encoding="ISO-8859-1").dropna()
         except Exception as e:
             logger.info(f"ERROR: no csv found: {e}")
 
@@ -131,7 +131,8 @@ class RecommendationSystem:
         processed = self.__check_if_processed()
         self.dataHandler = DataHandler(processed)
         self.dataPreProcessor = PreProcessor()
-        self.dataPreProcessor.preprocess(processed, self.dataHandler.stackoverflowQuestionsDataFrame, self.stackProcessedCsv, self.dataHandler.articlesDataFrame, self.mediumProcessedCsv)
+        processed = self.dataPreProcessor.preprocess(processed, self.dataHandler.stackoverflowQuestionsDataFrame, self.stackProcessedCsv, self.dataHandler.articlesDataFrame, self.mediumProcessedCsv)
+        self.dataHandler.load_data(processed)
         self.__load_glove_embeddings()
     
     def __check_if_processed(self):
@@ -243,7 +244,8 @@ class RecommendationSystem:
             })
 
         similarQuestions.sort(key=lambda x: x['similarity'], reverse=True)
-        similarQuestions = similarQuestions[:n]
+        if len(similarQuestions) >= n:
+            similarQuestions = similarQuestions[:n]
 
         return similarQuestions
 
@@ -287,7 +289,8 @@ class RecommendationSystem:
             })
 
         similarArticles.sort(key=lambda x: x['similarity'], reverse=True)
-        similarArticles = similarArticles[:n]
+        if len(similarArticles) >= n:
+            similarArticles = similarArticles[:n]
 
         return similarArticles
 

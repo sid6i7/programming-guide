@@ -49,8 +49,11 @@ class PreProcessor:
         """
         if not processed['stackoverflow']:
             self.preprocess_stackoverflow(stackDf, stackPath)
+            processed['stackoverflow'] = True
         if not processed['medium']:
             self.preprocess_medium(mediumDf, mediumPath)
+            processed['medium'] = True
+        return processed
         
     def preprocess_stackoverflow(self, stackDf, stackCsvPath):
         """
