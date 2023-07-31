@@ -14,16 +14,15 @@ services:
     build:
       dockerfile: Dockerfile
       context: ./client
-    environment:
-      - REACT_APP_RECOMMEND_ENDPOINT=/recommend
-      - REACT_APP_API_URL=/api
+      args:
+        REACT_APP_RECOMMEND_ENDPOINT: /recommend
+        REACT_APP_API_URL: /api
   backend:
     build:
       dockerfile: Dockerfile
       context: ./backend
     volumes:
       - ./backend/model/data:/backend/model/data
-      - ./backend/model/model.log:/backend/model/model.log
     environment:
       - KAGGLE_USERNAME=${KAGGLE_USERNAME}
       - KAGGLE_KEY=${KAGGLE_KEY}
