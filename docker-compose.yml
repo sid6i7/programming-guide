@@ -1,6 +1,6 @@
 version: '3'
 services:
-  nginx:
+  siddhant_jain_nginx:
     restart: always
     build:
       dockerfile: Dockerfile
@@ -8,16 +8,16 @@ services:
     ports:
       - '80:80'
     depends_on:
-      - frontend
-      - backend
-  frontend:
+      - siddhant_jain_frontend
+      - siddhant_jain_backend
+  siddhant_jain_frontend:
     build:
       dockerfile: Dockerfile
       context: ./client
       args:
         REACT_APP_RECOMMEND_ENDPOINT: /recommend
         REACT_APP_API_URL: /api
-  backend:
+  siddhant_jain_backend:
     build:
       dockerfile: Dockerfile
       context: ./backend
